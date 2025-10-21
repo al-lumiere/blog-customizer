@@ -4,51 +4,53 @@ import { Select } from 'src/ui/select';
 import { Text } from 'src/ui/text';
 import { RadioGroup } from 'src/ui/radio-group';
 import { Separator } from 'src/ui/separator';
+import { useClose } from 'src/hooks/useClose'
+import clsx from 'clsx';
 
 import styles from './ArticleParamsForm.module.scss';
 
 import React, { useEffect, useRef, useState } from 'react';
 import { fontFamilyOptions, fontColors, backgroundColors, contentWidthArr, fontSizeOptions,
 	type ArticleStateType,
-	type OptionType
+	type OptionType,
+	defaultArticleState
 } from 'src/constants/articleProps';
 
 type StateProps = {
-  open: boolean;
-  applied: ArticleStateType;
-  onOpen: () => void;
-  onClose: () => void;
-  onApply: (next: ArticleStateType) => void;
-  onReset: () => void;
+  value: ArticleStateType;
+	onChange: (next: ArticleStateType) => void;
 };
 
-export const ArticleParamsForm = ({open, applied, onOpen, onClose, onApply, onReset}: StateProps) => {
-	const [draft, setDraft] = useState(applied);
+export const ArticleParamsForm = ({ value, onChange}: StateProps) => {
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const [draft, setDraft] = useState(value);
 
 	useEffect(() => {
-		if (open) setDraft(applied)
-	}, [open, applied]);
+		if (isMenuOpen) setDraft(value)
+	}, [isMenuOpen, value]);
 
 	const ref = useRef<HTMLElement | null>(null);
-	useEffect(() => {
-		if (!open) return;
-		const handleClick = (e: MouseEvent) => {
-			if (ref.current && !ref.current.contains(e.target as Node)) {
-				onClose();
-			}
-		};
-		document.addEventListener('mousedown', handleClick);
-		return () => document.removeEventListener('mousedown', handleClick);
-	}, [open, onClose]);
+
+	const openMenu = () => setIsMenuOpen(true);
+	const closeMenu = () => setIsMenuOpen(false);
+
+	useClose({
+		isOpen: isMenuOpen,
+		onClose: closeMenu,
+		rootRef: ref,
+	});
+
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		onApply(draft);
+		onChange(draft);
+		closeMenu;
 	}
 
 	const handleReset = (e: React.FormEvent) => {
 		e.preventDefault();
-		onReset();
+		onChange(defaultArticleState);
+		closeMenu;
 	}
 
 	const setFontFamily = (option: OptionType) => {
@@ -74,8 +76,8 @@ export const ArticleParamsForm = ({open, applied, onOpen, onClose, onApply, onRe
 
 	return (
 		<>
-			<ArrowButton isOpen={open} onClick={() => (open ? onClose() : onOpen())} />
-			<aside ref={ref} className={`${styles.container} ${open ? styles.container_open : " "}`}>
+			<ArrowButton isOpen={isMenuOpen} onClick={() => (isMenuOpen ? closeMenu() : openMenu())} />
+			<aside ref={ref} className={clsx(styles.container, {[styles.container_open] : isMenuOpen})}>
 				<form className={styles.form} onSubmit={handleSubmit} onReset={handleReset}>
 					<Text children="Задайте параметры" size={31} weight={800} uppercase={true}/>
 					<Select title="Шрифт"

@@ -15,8 +15,6 @@ const root = createRoot(domNode);
 const App = () => {
 	const [applied, setApplied] = useState<ArticleStateType>(defaultArticleState);
 
-	const [isOpen, setOpen] = useState(false);
-
 	const mainStyle = useMemo(
     () =>
       ({
@@ -31,21 +29,11 @@ const App = () => {
 
 	return (
 		<main
-			className={clsx(styles.main)}
+			className={styles.main}
 			style={mainStyle}>
 			<ArticleParamsForm
-			open={isOpen}
-			applied={applied}
-			onOpen={() => setOpen(true)}
-			onClose={() => setOpen(false)}
-			onApply={(next) => {
-				setApplied(next);
-				setOpen(false);
-			}}
-			onReset={() => {
-				setApplied(defaultArticleState);
-				setOpen(false);
-			}}
+			value={applied}
+			onChange={setApplied}
 			/>
 			<Article />
 		</main>
